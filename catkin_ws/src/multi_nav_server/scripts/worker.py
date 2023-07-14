@@ -8,7 +8,7 @@ from arm_status_msgs.msg import ArmStatus
 from car_status_msgs.msg import CarStatus
 import actionlib
 from multi_nav_server.scripts.station import Stations
-from Arm import Arm
+from Arm_util.arm_car import Arm_car
 
 
 class Worker:
@@ -24,7 +24,7 @@ class Worker:
         self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
         self.move_base_client  = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         # TODO: Create Arm class
-        # self.Arm()
+        self.arm = Arm_car()
 
         self._is_ready = True
         self._is_moving = False

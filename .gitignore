@@ -424,3 +424,4 @@ CATKIN_IGNORE
 
 catkin_ws/src/turtlebot3/
 catkin_ws/src/turtlebot3
+.catkin_workspace
