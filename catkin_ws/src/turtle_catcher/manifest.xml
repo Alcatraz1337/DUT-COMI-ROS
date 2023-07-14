@@ -1,0 +1,14 @@
+<package>
+  <description brief="turtle_catcher">
+
+     turtle_catcher
+
+  </description>
+  <author>Lynn</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/turtle_catcher</url>
+  <depend package="rospy"/>
+  <depend package="tf"/>
+
+</package>

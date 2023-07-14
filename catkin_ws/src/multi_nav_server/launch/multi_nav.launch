@@ -1,0 +1,3 @@
+<launch>
+    <node name='multi_nav_server' pkg='multi_nav_server' type='multi_nav_server_static.py' output='screen'/>
+</launch>
