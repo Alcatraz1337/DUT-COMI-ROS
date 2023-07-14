@@ -9,7 +9,7 @@ from car_status_msgs.msg import CarStatus
 import actionlib
 from multi_nav_server.scripts.station import Stations
 from Arm_util.arm_car import Arm_car
-# Trash
+# Trash123
 
 class Worker:
     def __init__(self, name="", id=0):
