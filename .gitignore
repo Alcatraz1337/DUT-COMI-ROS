@@ -420,3 +420,7 @@ CATKIN_IGNORE
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,ros,visualstudiocode,pycharm,python,c++,cmake
+
+
+catkin_ws/src/turtlebot3/
+catkin_ws/src/turtlebot3
