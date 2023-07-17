@@ -5,40 +5,44 @@ from geometry_msgs.msg import PoseStamped, Twist
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
 import actionlib
-from multi_nav_server.scripts.station import Stations
+from station import Stations
 from worker import Worker
 from car_status_msgs.msg import CarStatus
+from jobs import Jobs
 import sys
 
 
 class MultiNavServer:
-    def __init__(self, _n_cars=1):
+    def __init__(self, n_cars=1):
         self._rate = rospy.Rate(10)
-        self.stations = []
-        self.point_index = 0  # Probably will discard this
-        self.n_stations = 0
-        self.n_cars = _n_cars
-        self.cars = []  # type: list[Worker]
-        self.stations = []  # list of station indices
+        self._stations = []
+        self._point_index = 0  # Probably will discard this
+        self._n_stations = 0
+        self._n_cars = n_cars
+        self._cars = []  # type: list[Worker]
+        self._stations = []  # list of station indices
         self.sub_car_status = rospy.Subscriber('/car_status', CarStatus, self.car_status_callback)
-        self.available_cars = []  # list of available car indices
+        self._available_cars = []  # list of available car indices
+
+        self.jobs = {}  # type: dict[str, list[int]]
 
     def initialize(self):
-        self.stations = Stations().get_points()
-        if self.n_cars == 1:
-            self.cars.append(Worker("", 0))
-            self.available_cars.append(0)
+        self._stations = Stations().get_points()
+        if self._n_cars == 1:
+            self._cars.append(Worker("", 0))
+            self._available_cars.append(0)
         else:
-            for i in range(self.n_cars):
+            for i in range(self._n_cars):
                 worker = Worker("car" + str(i), i)
-                self.cars.append(worker)
-                self.available_cars.append(i)
-        self.n_stations = len(self.stations)
-        for i in range(self.n_stations):
-            self.stations[i].id = i
+                self._cars.append(worker)
+                self._available_cars.append(i)
+        self._n_stations = len(self._stations)
+        for i in range(self._n_stations):
+            self._stations[i]._id = self._n_cars + i # station id starts from n_cars
+        self.jobs = Jobs().get_jobs()
 
     def shutdown(self):
-        self.cars[0].shutdown()
+        self._cars[0].shutdown()
         # self.pub_markers.unregister()
         # self.pub_goal.unregister()
         # self.sub_goal_result.unregister()
@@ -47,7 +51,7 @@ class MultiNavServer:
     def car_status_callback(self, msg):
         if msg.car_ready:
             rospy.loginfo("Car " + str(msg.id) + " is ready")
-            self.available_cars.append(int(msg.id))
+            self._available_cars.append(int(msg.id))
 
     """
     def goal_result_callback(self, msg):
@@ -86,31 +90,31 @@ class MultiNavServer:
         obj: str, optional,
         """
         # check car_index, point_index and mission_type validity
-        if car_index < 0 or car_index >= len(self.cars):
+        if car_index < 0 or car_index >= len(self._cars):
             rospy.logwarn("Invalid car index")
             return
-        if start_point_index < 0 or start_point_index >= len(self.stations):
+        if start_point_index < 0 or start_point_index >= len(self._stations):
             rospy.logwarn("Invalid point index")
             return
         # dispatch car to point and set mission object and set target indices
-        self.cars[car_index].set_object(obj)
-        self.cars[car_index].set_targets(start_point_index, end_point_index)
-        self.cars[car_index].activate_car()
-        self.available_cars.remove(car_index)
+        self._cars[car_index].set_object(obj)
+        self._cars[car_index].set_targets(start_point_index, end_point_index)
+        self._cars[car_index].activate_car()
+        self._available_cars.remove(car_index)
 
     def run(self):
         rospy.on_shutdown(self.shutdown)
-        self.cars[0].move_base_client.wait_for_server()
+        self._cars[0].move_base_client.wait_for_server()
         while not rospy.is_shutdown():
             self._rate.sleep()
-            if len(self.available_cars) > 0:
-                if self.point_index >= len(self.stations):
+            if len(self._available_cars) > 0:
+                if self._point_index >= len(self._stations):
                     rospy.loginfo("All stations reached, shutting down...")
                     self._rate.sleep()
                     break
                 else:
-                    self.dispatch_car(0, self.point_index, self.point_index + 1, "red")
-                    self.point_index += 2
+                    self.dispatch_car(0, self._point_index, self._point_index + 1, "red")
+                    self._point_index += 2
             self._rate.sleep()
 
 

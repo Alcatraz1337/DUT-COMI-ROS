@@ -1,0 +1,11 @@
+job1:
+  target: red
+  process: 3
+
+job2:
+  target: blue
+  process: 4
+
+job3:
+  target: yellow
+  process: 2

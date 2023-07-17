@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import rospy
-from geometry_msgs.msg import PoseStamped, Twist
+from geometry_msgs.msg import Twist
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
 from arm_status_msgs.msg import ArmStatus
 from car_status_msgs.msg import CarStatus
 import actionlib
-from multi_nav_server.scripts.station import Stations
+from station import Stations
 from Arm_util.arm_car import Arm_car
-# Trash123456789
+
 
 class Worker:
     def __init__(self, name="", id=0):
@@ -22,7 +22,7 @@ class Worker:
         self.pub_cmd_vel = rospy.Publisher(self._name + '/cmd_vel', Twist, queue_size=1)
         self.pub_cancel_goal = rospy.Publisher(self._name + '/move_base/cancel', GoalID, queue_size=1)
         self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
-        self.move_base_client  = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
+        self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         # TODO: Create Arm class
         self.arm = Arm_car()
 

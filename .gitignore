@@ -425,3 +425,4 @@ CATKIN_IGNORE
 catkin_ws/src/turtlebot3/
 catkin_ws/src/turtlebot3
 .catkin_workspace
+catkin_ws/src/multi_nav_server/scripts/test_yaml.ipynb

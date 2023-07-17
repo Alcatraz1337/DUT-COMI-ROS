@@ -7,5 +7,7 @@
     "python.analysis.extraPaths": [
         "/home/lynn/GitHub/DUT-COMI-ROS/catkin_ws/devel/lib/python2.7/dist-packages",
         "/opt/ros/melodic/lib/python2.7/dist-packages"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.enabled": true
 }
