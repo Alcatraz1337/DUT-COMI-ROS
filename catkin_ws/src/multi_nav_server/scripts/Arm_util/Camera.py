@@ -88,7 +88,7 @@ def shutdown():
 while not rospy.shutdown(shutdown):
     # ros发布，返回信息
     if target != "":
-        # TODO: 识别(考虑识别不到的情况）
+        # TODO: 识别(考虑识别不到的情况)
         target_angle = recognize()
         sender(target_angle)
         target = ""
