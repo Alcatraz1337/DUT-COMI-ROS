@@ -37,6 +37,7 @@ class Stations():
         st._output.target_pose.pose.orientation.w = 0.7
         self.stations.append(st)
 
+        st = Station()
         st._input.target_pose.pose.position.x = -1.35
         st._input.target_pose.pose.position.y = 4.0
         st._input.target_pose.pose.orientation.z = 0.0
@@ -47,6 +48,7 @@ class Stations():
         st._output.target_pose.pose.orientation.w = 0.7
         self.stations.append(st)
 
+        st = Station()
         st._input.target_pose.pose.position.x = -3.7
         st._input.target_pose.pose.position.y = 4.0
         st._input.target_pose.pose.orientation.z = 1.0
@@ -57,6 +59,7 @@ class Stations():
         st._output.target_pose.pose.orientation.w = 0.7
         self.stations.append(st)
 
+        st = Station()
         st._input.target_pose.pose.position.x = -3.5
         st._input.target_pose.pose.position.y = 1.0
         st._input.target_pose.pose.orientation.z = 1.0

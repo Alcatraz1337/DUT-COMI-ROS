@@ -75,7 +75,8 @@ class MultiNavServer:
         Second get the job's next station index from available stations
         """
         start = self._jobs[job]["station"]
-        if self._jobs[job]["process"] == 1:
+        if self._jobs[job]["process"] == 1: 
+            # if this is the last process of the job then go to distribution station
             end = 0
         else:
             end = self._available_stations.pop(0)
