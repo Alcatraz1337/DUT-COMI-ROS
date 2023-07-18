@@ -91,6 +91,7 @@ class Worker:
         # type: (str) -> None
         # TODO: Set arm to pick specific object
         # self.Arm.arm_pick(obj)
+        self._arm.Arm_pick(obj)
         self._arm_working = True
         pass
 
