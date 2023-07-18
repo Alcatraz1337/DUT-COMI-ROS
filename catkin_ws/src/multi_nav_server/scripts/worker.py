@@ -15,7 +15,7 @@ class Worker:
     def __init__(self, name="", id=0):
         self._name = name
         self._id = id
-        self._stations = Stations().get_points()
+        self._stations = Stations().get_stations()
         self.sub_goal_result = rospy.Subscriber(self._name + '/move_base/result', MoveBaseActionResult,
                                                 self.goal_result_callback)
         self.sub_arm_status = rospy.Subscriber(self._name + '/arm_status', ArmStatus, self.arm_status_callback)
@@ -24,7 +24,7 @@ class Worker:
         self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         # TODO: Create Arm class
-        self.arm = Arm_car()
+        self._arm = Arm_car(self._id, 3)
 
         self._is_ready = True
         self._is_moving = False
@@ -42,13 +42,16 @@ class Worker:
         self.sub_arm_status.unregister()
         rospy.loginfo("Shutting down worker " + self._name)
 
+    def set_arm_id(self, id):
+        self._arm.set_id(id)
+
     def set_object(self, obj):
         # type: (str) -> None
         self._arm_obj = obj
         self._arm_picking = True
         self._arm_dropping = True
 
-    def set_targets(self, curr_target, next_target):
+    def set_moving_targets(self, curr_target, next_target):
         # type: (int, int) -> None
         if curr_target < 0 or curr_target >= len(self._stations):
             rospy.logwarn("Invalid current target index")
@@ -67,18 +70,15 @@ class Worker:
         if self._curr_target < 0 or self._curr_target >= len(self._stations):
             rospy.logwarn("Invalid current target index")
             return
-        # TODO: Check next goal index validity
-        if self._curr_target == self._next_target:
-            rospy.logwarn("Current target and next target are the same")
-            return
         if self._is_moving:
             rospy.logwarn("Car " + str(self._id) + " is already moving")
             return
         # Send goal
         goal = MoveBaseGoal()
         # TODO: Check if all the situation is go to output first then input
-        goal = self._stations[self._curr_target]
-        goal.output.target_pose.header.frame_id = "map"
+        goal = self._stations[self._curr_target]._output if self._next_target != -1 \
+                                                        else self._stations[self._curr_target]._input
+        goal.target_pose.header.frame_id = "map"
 
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self._curr_target) + " to car " + str(self._id))
@@ -114,8 +114,8 @@ class Worker:
     def arm_status_callback(self, msg):
         # type: (ArmStatus) -> None
         # TODO: When arm finished moving, update arm status
-        rospy.loginfo("Car " + str(self._id) + " arm finished!")
-        if msg.status:
+        if msg.arm_id == self._id and msg.status:
+            rospy.loginfo("Car " + str(self._id) + " arm finished!")
             if self._is_moving:
                 # If the car is still moving, the arm should not be working..
                 # TODO: Fix the problem if the arm is working when the car is moving
