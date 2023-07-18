@@ -3,7 +3,6 @@ import rospy
 from Camera_msgs.msg import Camera_Angle, Camera_Target
 from Arm_Lib import Arm_Device
 
-
 class Arm_base:
     def __init__(self, ID,
                  depth=210, Arm_Location=(0, 0, 0), wucha=1,
@@ -19,6 +18,7 @@ class Arm_base:
         self.error_range = error_range  # 识别框的误差允许范围
         self.Arm = Arm_Device()  # 初始化的时就应该生成机械臂对象
         self.angle = None  # 初始化是角度为空
+        self.p_mould = [90, 130, 0, 0, 90] # 机械臂的等待位置
         # 初始化时注册消息的发布
         self.pub_camera_target = rospy.Publisher("Camera_Target", Camera_Target, queue_size=1)
         self.pub_camera_angle = rospy.Publisher("Camera_Angle", Camera_Angle, queue_size=1)
@@ -29,6 +29,11 @@ class Arm_base:
 
     def get_color_information(self):
         return self.color_information
+
+    def set_id(self, ID):
+        self.ID = ID
+    def get_ID(self):
+        return self.ID
 
     def reset(self):  # 程序执行完毕后，一些必要的信息必须重置为开始状态
         self.color_information = None
@@ -66,6 +71,7 @@ class Arm_base:
             self.control_Arm(id, 90 - self.angle, False, self.wucha)
         elif abs(self.angle) > 90:
             self.control_Arm(id, 90 - abs(self.angle), True, self.wucha)
+        #
 
 
     # 定义夹积木块函数，enable=1：夹住，=0：松开
