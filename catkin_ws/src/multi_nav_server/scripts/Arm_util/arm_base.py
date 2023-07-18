@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 import rospy
 from Camera_msgs.msg import Camera_Angle, Camera_Target
