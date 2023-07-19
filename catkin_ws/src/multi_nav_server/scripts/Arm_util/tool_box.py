@@ -1,8 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import serial
 import serial.tools.list_ports
 from decimal import Decimal, getcontext
 import numpy as np
-import cv2
 import math
 
 
@@ -29,19 +30,6 @@ def open_serial():
     else:
         print("打开串口失败。")
     return ser
-
-
-# def setial_communicatiuon(ser):
-#     coordinates = None
-#     # 接收从 Spresense 传来的指定数据
-#     data = ser.readline().decode().strip()  # 解码并去除首尾的空白字符
-#     if data[:4] == 'Data':
-#         # 解析坐标数据
-#         head, x, y = data.split(',')
-#         x = int(x)
-#         y = int(y)
-#         coordinates = (x, y)
-#     return coordinates
 
 def setial_communicatiuon_new(ser):
     coordinates = None
@@ -119,28 +107,6 @@ def check_coloridx_imformation(result, color_information):
         height = result[19]
         flag = True
     return flag, (x, y, width, height)
-
-
-# 图像坐标转换为世界坐标
-def image_to_world(pixel_coords, depth, K, D):
-    # 转换为齐次坐标
-    pixel_coords_homogeneous = np.array([[pixel_coords[0], pixel_coords[1]]], dtype=np.float64)
-
-    # 去除畸变
-    undistorted_coords = cv2.undistortPoints(pixel_coords_homogeneous, K, D)
-
-    # 相机坐标系下的归一化坐标
-    normalized_coords = np.append(undistorted_coords[0], 1.0)
-
-    # 相机坐标系下的世界坐标
-    world_coords_homogeneous = np.linalg.inv(K) @ normalized_coords * depth
-
-    # 转换为世界坐标
-    world_coords = np.array([world_coords_homogeneous[0], world_coords_homogeneous[1], world_coords_homogeneous[2]],
-                            dtype=np.float64)
-
-    return world_coords
-
 
 # 方法更新-v1
 def image_to_world_v1(z_points, image_points):

@@ -1,6 +1,7 @@
 import tool_box
 import time
-import math
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from arm_base import Arm_base
 class Arm_car(Arm_base):
     def __init__(self, ID, num_judgments,
