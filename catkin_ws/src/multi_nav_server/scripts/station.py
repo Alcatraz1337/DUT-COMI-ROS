@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
+import rospy, sys, os
 from geometry_msgs.msg import Twist, PoseStamped
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal
 from arm_status_msgs.msg import ArmStatus
@@ -13,10 +13,21 @@ class Station:
         self._input = MoveBaseGoal()
         self._output = MoveBaseGoal()
         self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
+        self.is_working = False
+        self._job = "" # type: str # Job name
         self._arm = Arm_static(self._id, 3)
 
     def set_arm_id(self, id):
+        # type: (int) -> None
         self._arm.set_id(id)
+
+    def set_job(self, job):
+        # type: (str) -> None
+        self._job = job
+    
+    def start_arm(self):
+        # type: () -> None
+        self._arm.Arm_pick(self._job)
 
 
 class Stations():

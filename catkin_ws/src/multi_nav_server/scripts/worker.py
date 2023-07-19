@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
+import rospy, sys, os
 from geometry_msgs.msg import Twist
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
@@ -18,11 +18,12 @@ class Worker:
         self._stations = Stations().get_stations()
         self.sub_goal_result = rospy.Subscriber(self._name + '/move_base/result', MoveBaseActionResult,
                                                 self.goal_result_callback)
-        self.sub_arm_status = rospy.Subscriber(self._name + '/arm_status', ArmStatus, self.arm_status_callback)
+        self.sub_arm_status = rospy.Subscriber('/arm_status', ArmStatus, self.arm_status_callback)
         self.pub_cmd_vel = rospy.Publisher(self._name + '/cmd_vel', Twist, queue_size=1)
         self.pub_cancel_goal = rospy.Publisher(self._name + '/move_base/cancel', GoalID, queue_size=1)
         self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
+        self.move_base_client.wait_for_server()
         # TODO: Create Arm class
         self._arm = Arm_car(self._id, 3)
 
@@ -47,12 +48,14 @@ class Worker:
 
     def set_object(self, obj):
         # type: (str) -> None
+        # Set the car's target object and mark both signs to true
         self._arm_obj = obj
         self._arm_picking = True
         self._arm_dropping = True
 
     def set_moving_targets(self, curr_target, next_target):
         # type: (int, int) -> None
+        # Check if the targets are valid
         if curr_target < 0 or curr_target >= len(self._stations):
             rospy.logwarn("Invalid current target index")
             self._curr_target = -1
@@ -75,13 +78,14 @@ class Worker:
             return
         # Send goal
         goal = MoveBaseGoal()
-        # TODO: Check if all the situation is go to output first then input
+        # All the situation is go to output first then input
+        # if the next target is -1, then should go to input
         goal = self._stations[self._curr_target]._output if self._next_target != -1 \
                                                         else self._stations[self._curr_target]._input
         goal.target_pose.header.frame_id = "map"
-
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self._curr_target) + " to car " + str(self._id))
+        # Move next target to current target
         self._curr_target = self._next_target
         self._next_target = -1
         self._is_ready = False
@@ -91,8 +95,8 @@ class Worker:
         # type: (str) -> None
         # TODO: Set arm to pick specific object
         # self.Arm.arm_pick(obj)
+        self._arm.Arm_pick(obj)
         self._arm_working = True
-        pass
 
     def arm_drop(self):
         # TODO: Set arm to drop the object
@@ -104,12 +108,12 @@ class Worker:
         if msg.status.status == 3:
             rospy.loginfo("Goal reached, setting car " + str(self._id) + " not moving, continuing to arm...")
             self._is_moving = False
-            if self._arm_obj != "":
+            if self._arm_obj != "": 
+                # If the car has an object to pick, then pick it
                 self.arm_pick(self._arm_obj)
             else:
-                self._is_ready = True
-                # Publish car status
-                self.pub_car_status.publish(CarStatus(self._id, self._is_moving, self._is_ready))
+                # TODO: If the car has no object to pick, then drop the object
+                pass
 
     def arm_status_callback(self, msg):
         # type: (ArmStatus) -> None
@@ -119,6 +123,7 @@ class Worker:
             if self._is_moving:
                 # If the car is still moving, the arm should not be working..
                 # TODO: Fix the problem if the arm is working when the car is moving
+                rospy.logwarn("Car " + str(self._id) + " is moving, but arm is working, this should not happen!")
                 return
             # The first call should be the arm finished picking, so the next move is to go the next target
             if self._arm_picking:

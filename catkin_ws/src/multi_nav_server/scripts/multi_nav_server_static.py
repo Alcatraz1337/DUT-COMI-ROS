@@ -4,10 +4,10 @@ import rospy
 from geometry_msgs.msg import PoseStamped, Twist
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
-import actionlib
 from station import Station, Stations
 from worker import Worker
 from car_status_msgs.msg import CarStatus
+from arm_status_msgs.msg import ArmStatus
 from jobs import Jobs
 import sys
 
@@ -21,6 +21,7 @@ class MultiNavServer:
         self._n_cars = n_cars
         self._n_stations = 0
         self.sub_car_status = rospy.Subscriber('/car_status', CarStatus, self.car_status_callback)
+        self.sub_arm_status = rospy.Subscriber('/arm_status', ArmStatus, self.arm_status_callback)
 
         self._available_cars = []  # type:list[int] # list of available car ids, id is the index of the car in the cars list, [0, n_cars]
         self._working_cars = []  # type:list[int] # list of working car ids, id is the index of the car in the cars list [0, n_cars]
@@ -67,6 +68,15 @@ class MultiNavServer:
             rospy.loginfo("Car " + str(msg.id) + " is ready")
             self._available_cars.append(int(msg.id))
 
+    def arm_status_callback(self, msg):
+        # type: (ArmStatus) -> None
+        # If a station arm finished working
+        if msg.status and msg.arm_id >= self._n_cars:
+            rospy.loginfo("Server: Arm " + str(msg.arm_id) + " finished working")
+            self._available_stations.append(msg.arm_id - self._n_cars)
+            self._working_stations.remove(msg.arm_id - self._n_cars)
+            self._stations[msg.arm_id - self._n_cars].is_working = False
+
     def get_dispatch_routes(self, job):
         # type: (str) -> tuple[int, int]
         """
@@ -75,12 +85,19 @@ class MultiNavServer:
         Second get the job's next station index from available stations
         """
         start = self._jobs[job]["station"]
-        if self._jobs[job]["process"] == 1: 
-            # if this is the last process of the job then go to distribution station
-            end = 0
-        else:
-            end = self._available_stations.pop(0)
+        # if this is the last process of the job then go to distribution station
+        end = 0 if self._jobs[job]["process"] == 1 else self._available_stations.pop(0)
         return start, end
+    
+    def start_stations(self):
+        # type: () -> None
+        """
+        Check all stations in the working_stations list, if a station is not working, start it
+        """
+        for station_index in self._working_stations:
+            if not self._stations[station_index].is_working:
+                self._stations[station_index].is_working = True
+                self._stations[station_index].start_arm()
     
     def has_available_jobs(self):
         # type: () -> bool
@@ -103,7 +120,9 @@ class MultiNavServer:
         obj: str, optional,
 
         All available/working cars/stations should be handled here
+        Also should announce the station what job it will be working on
         """
+        # Get job and car index using FIFO greedy algorithm
         job = self._available_jobs.pop(0)
         car_index = self._available_cars.pop(0)
         route = self.get_dispatch_routes(job)
@@ -118,32 +137,29 @@ class MultiNavServer:
         self._cars[car_index].set_object(job)
         self._cars[car_index].set_moving_targets(route[0], route[1])
         self._cars[car_index].activate_car()
+        # Set the station's job that it will be doing. The station should be the route's end point
+        self._stations[route[1]].set_job(job)
         # Add the car to working_car list
         self._working_cars.append(car_index)
         # Add the job to working_job list
         self._working_jobs.append(job)
 
-        self._jobs[job]["process"] -= 1
-        self._jobs[job]["station"] = route[1]
-        self._available_stations.remove(route[1])
+        self._jobs[job]["process"] -= 1 # Decrease the job's process by 1
+        self._jobs[job]["station"] = route[1] # Set the job's station to the next station
+        self._available_stations.remove(route[1]) # The next station is not available anymore
 
     def run(self):
         rospy.on_shutdown(self.shutdown)
-        self._cars[0].move_base_client.wait_for_server()
         while not rospy.is_shutdown():
             self._rate.sleep()
-            if self.has_available_cars() and self.has_available_jobs():
-                self.dispatch_car()
-
-
-
-                # if self._point_index >= len(self._stations):
-                #     rospy.loginfo("All stations reached, shutting down...")
-                #     self._rate.sleep()
-                #     break
-                # else:
-                #     self.dispatch_car(0, self._point_index, self._point_index + 1, "red")
-                #     self._point_index += 2
+            if not self.all_job_done():
+                if self.has_available_cars() and self.has_available_jobs():
+                    self.dispatch_car()
+                    self.start_stations()
+            else:
+                rospy.loginfo("All jobs done, shutting down...")
+                self._rate.sleep()
+                break
             self._rate.sleep()
 
 
