@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 class ErrorAnalyzer:
     def __init__(self, error_range, num_judgments_car):
         self.error_range = error_range
