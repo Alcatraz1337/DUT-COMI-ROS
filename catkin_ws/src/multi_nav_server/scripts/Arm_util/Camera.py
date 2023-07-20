@@ -1,34 +1,26 @@
 #!/usr/bin/env python
-
 # -*- coding: utf-8 -*-
-
-
 import time
 import tool_box
 import rospy
 from errorAnalyzer import ErrorAnalyzer
 from Camera_msgs.msg import Camera_Target, Camera_Angle
+from arm_base import *
 
-pub_camera_angle = rospy.Publisher("Camera_Angle",Camera_Angle,queue_size=1)
-target = ""
-flag = False
-flag_error = False
-error_range = 0
-num_judgments = 0
-depth = 0
 def call_back(msg):
-    global flag = msg.flag
-    global flag_error = msg.flag_error
-    global depth = msg.depth
-    global error_range = msg.error_range
-    global num_judgments = msg.num_judgements
-
+    global color_information, flag, flag_error, depth, error_range, num_judgments
     # 获取到角度,更改target信息
-    global target = msg.color_information
-# 搜索对象
-sub_camera_target = rospy.Subscriber('Camera_Target', Camera_Target, call_back)
+    color_information = msg.color_information
+    flag = msg.flag
+    flag_error = msg.flag_error
+    depth = msg.depth
+    error_range = msg.error_range
+    num_judgments = msg.num_judgements
 
 def recognize():
+    arm = Arm_base(1)
+
+    # global flag_error, flag
     wait_time = 12
     Arm_Location = (0, 0, 0)
     coordinates = []
@@ -46,7 +38,7 @@ def recognize():
         if (ser.in_waiting > 0):
             result, flag = tool_box.setial_communicatiuon_mutiple(ser)
             if result is not None:
-                flag, coordinates = tool_box.check_coloridx_imformation(result, msg.color_information)
+                flag, coordinates = tool_box.check_coloridx_imformation(result, color_information)
                 # 对coordinates的第一位，也就是x值进行误差分析
                 if flag_error == False:
                     rospy.loginfo("正在对获取的数据进行误差分析……")
@@ -89,6 +81,18 @@ def sender(angle):
 def shutdown():
     pub_camera_angle.unregister()
     sub_camera_target.unregister()
+
+
+pub_camera_angle = rospy.Publisher("Camera_Angle",Camera_Angle,queue_size=1)
+target = ""
+flag = False
+flag_error = False
+error_range = 0
+num_judgments = 0
+depth = 0
+
+# 搜索对象
+sub_camera_target = rospy.Subscriber('Camera_Target', Camera_Target, call_back)
 
 while not rospy.shutdown(shutdown):
     # ros发布，返回信息
