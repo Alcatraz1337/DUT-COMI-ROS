@@ -34,7 +34,6 @@ def open_serial():
 def setial_communicatiuon_new(ser):
     coordinates = None
     # 接收从 Spresense 传来的指定数据
-    # print("111")
     data = ser.readline().decode().strip()  # 解码并去除首尾的空白字符
     # print("222")
     if data[:4] == 'Data':
@@ -49,11 +48,9 @@ def setial_communicatiuon_new(ser):
     else:
         return None, False
 
-
 def setial_communicatiuon_mutiple(ser):
     coordinates = None
-    prefix = color_red = red_x = red_y = width_red = height_red = color_yellow = yellow_x = yellow_y = width_y = height_y = color_blue = blue_x = blue_y = width_b = height_b = color_green = green_x = green_y = width_g = height_g = None
-    # print("111")
+    # prefix = color_red = red_x = red_y = width_red = height_red = color_yellow = yellow_x = yellow_y = width_y = height_y = color_blue = blue_x = blue_y = width_b = height_b = color_green = green_x = green_y = width_g = height_g = None
     # 接收从 Spresense 传来的指定数据
     data = ser.readline().decode().strip()  # 解码并去除首尾的空白字符
     # print("222")
