@@ -74,7 +74,9 @@ class MultiNavServer:
         # If a station arm finished working
         if msg.status and msg.arm_id >= self._n_cars:
             rospy.loginfo("Server: Arm " + str(msg.arm_id) + " finished working")
-            self._available_jobs.append(msg.job)
+            # If a job has no more process, then don't need to add it to available jobs
+            if self._jobs[msg.job]["process"] >= 0:
+                self._available_jobs.append(msg.job)
             self._available_stations.append(msg.arm_id - self._n_cars)
             self._working_stations.remove(msg.arm_id - self._n_cars)
             self._stations[msg.arm_id - self._n_cars].is_working = False
@@ -88,7 +90,7 @@ class MultiNavServer:
         """
         start = self._jobs[job]["station"]
         # if this is the last process of the job then go to distribution station
-        end = 0 if self._jobs[job]["process"] == 1 else self._available_stations.pop(0)
+        end = 0 if self._jobs[job]["process"] == 0 else self._available_stations.pop(0)
         return start, end
     
     def start_stations(self):
@@ -109,6 +111,10 @@ class MultiNavServer:
         # type: () -> bool
         return len(self._available_cars) > 0
     
+    def has_available_stations(self):
+        # type: () -> bool
+        return len(self._available_stations) > 0
+    
     def all_job_done(self):
         # type: () -> bool
         return len(self._available_jobs) == 0 and len(self._working_jobs) == 0
@@ -128,6 +134,7 @@ class MultiNavServer:
         job = self._available_jobs.pop(0)
         car_index = self._available_cars.pop(0)
         route = self.get_dispatch_routes(job)
+        rospy.loginfo("Get route for car "+ str(car_index) + ": " + str(route))
         # Check car_index and point_index
         if car_index < 0 or car_index >= len(self._cars):
             rospy.logwarn("Invalid car index")
@@ -136,10 +143,11 @@ class MultiNavServer:
             rospy.logwarn("Invalid point index")
             return
         # dispatch car to point and set mission object and set target indices
-        self._cars[car_index].set_working_obj_color(self._jobs[job]["target_color"])
+        self._cars[car_index].set_working_job_color(job, self._jobs[job]["target_color"])
         self._cars[car_index].set_moving_targets(route[0], route[1])
         self._cars[car_index].activate_car()
         # Set the station's job that it will be doing. The station should be the route's end point
+        self._stations[route[1]].set_job(job)
         self._stations[route[1]].set_working_color(self._jobs[job]["target_color"])
         # Add the car to working_car list
         self._working_cars.append(car_index)
@@ -148,14 +156,13 @@ class MultiNavServer:
 
         self._jobs[job]["process"] -= 1 # Decrease the job's process by 1
         self._jobs[job]["station"] = route[1] # Set the job's station to the next station
-        self._available_stations.remove(route[1]) # The next station is not available anymore
 
     def run(self):
         rospy.on_shutdown(self.shutdown)
         while not rospy.is_shutdown():
             self._rate.sleep()
             if not self.all_job_done():
-                if self.has_available_cars() and self.has_available_jobs():
+                if self.has_available_cars() and self.has_available_jobs() and self.has_available_stations():
                     self.dispatch_car()
                     self.start_stations()
             else:

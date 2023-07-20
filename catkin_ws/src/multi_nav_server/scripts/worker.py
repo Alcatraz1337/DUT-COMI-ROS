@@ -31,6 +31,7 @@ class Worker:
         self._arm_picking = False
         self._arm_dropping = False
         self._arm_working = False
+        self._job = ""  # Current job
         self._arm_obj_color = ""  # Working object
         self._curr_target = -1  # Current target index
         self._next_target = -1  # Next target index
@@ -46,10 +47,11 @@ class Worker:
     # def set_arm_id(self, id):
     #     self._arm.set_id(id)
 
-    def set_working_obj_color(self, obj):
-        # type: (str) -> None
+    def set_working_job_color(self, job, color):
+        # type: (str, str) -> None
         # Set the car's target object and mark both signs to true
-        self._arm_obj_color = obj
+        self._job = job
+        self._arm_obj_color = color
         self._arm_picking = True
         self._arm_dropping = True
 
@@ -61,6 +63,7 @@ class Worker:
             self._curr_target = -1
         else:
             self._curr_target = curr_target
+
         if next_target < 0 or next_target >= len(self._stations):
             rospy.logwarn("Invalid next target index")
             self._next_target = -1
@@ -94,12 +97,14 @@ class Worker:
     def arm_pick(self, obj=""):
         # type: (str) -> None
         # TODO: Set arm to pick specific object
-        msg = ArmWork(self._id, "pick", obj)
+        msg = ArmWork(self._id, "pick", self._job, obj)
+        self.pub_arm_work.publish(msg)
         self._arm_working = True
 
     def arm_drop(self):
         # TODO: Set arm to drop the object
-        msg = ArmWork(self._id, "drop", "")
+        msg = ArmWork(self._id, "drop", self._job, "")
+        self.pub_arm_work.publish(msg)
         self._arm_working = True
 
     def goal_result_callback(self, msg):
@@ -107,12 +112,12 @@ class Worker:
         if msg.status.status == 3:
             rospy.loginfo("Goal reached, setting car " + str(self._id) + " not moving, continuing to arm...")
             self._is_moving = False
-            if self._arm_obj_color != "": 
+            if self._arm_picking: 
                 # If the car has an object to pick, then pick it
                 self.arm_pick(self._arm_obj_color)
             else:
-                # TODO: If the car has no object to pick, then drop the object
-                pass
+                # If the car has no object to pick, then drop the object
+                self.arm_drop()
 
     def arm_status_callback(self, msg):
         # type: (ArmStatus) -> None

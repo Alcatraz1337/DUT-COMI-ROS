@@ -17,15 +17,21 @@ class Station:
         self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
         self.is_working = False
         self._color = "" # type: str # Job name
+        self._job = ""
 
+
+    def set_job(self, job):
+        # type: (str) -> None
+        self._job = job
 
     def set_working_color(self, color):
         # type: (str) -> None
         self._color = color
+        
     
     def start_arm(self):
         # type: () -> None
-        self.pub_arm_work.publish(ArmWork(self._id, "pick", self._color))
+        self.pub_arm_work.publish(ArmWork(self._id, "pick", self._job, self._color))
 
 
 class Stations():
