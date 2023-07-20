@@ -46,7 +46,7 @@ class Worker:
     # def set_arm_id(self, id):
     #     self._arm.set_id(id)
 
-    def set_object(self, obj):
+    def set_working_obj_color(self, obj):
         # type: (str) -> None
         # Set the car's target object and mark both signs to true
         self._arm_obj_color = obj

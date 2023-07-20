@@ -74,6 +74,7 @@ class MultiNavServer:
         # If a station arm finished working
         if msg.status and msg.arm_id >= self._n_cars:
             rospy.loginfo("Server: Arm " + str(msg.arm_id) + " finished working")
+            self._available_jobs.append(msg.job)
             self._available_stations.append(msg.arm_id - self._n_cars)
             self._working_stations.remove(msg.arm_id - self._n_cars)
             self._stations[msg.arm_id - self._n_cars].is_working = False
@@ -135,7 +136,7 @@ class MultiNavServer:
             rospy.logwarn("Invalid point index")
             return
         # dispatch car to point and set mission object and set target indices
-        self._cars[car_index].set_object(self._jobs[job]["target_color"])
+        self._cars[car_index].set_working_obj_color(self._jobs[job]["target_color"])
         self._cars[car_index].set_moving_targets(route[0], route[1])
         self._cars[car_index].activate_car()
         # Set the station's job that it will be doing. The station should be the route's end point
