@@ -39,15 +39,14 @@ class MultiNavServer:
             self._available_cars.append(0)
         else:
             for i in range(self._n_cars):
+                # TODO: Set to right car name
                 worker = Worker("car" + str(i), i)
-                worker.set_arm_id(i)
                 self._cars.append(worker)
                 self._available_cars.append(i)
         self._n_stations = len(self._stations)
         # Initialize static stations and set station arm id. And add available stations
         for i in range(self._n_stations):
             self._stations[i]._id = self._n_cars + i # station id starts from n_cars
-            self._stations[i].set_arm_id(self._n_cars + i)
             if i != 0:
                 self._available_stations.append(i)
         # Initialize jobs
@@ -67,12 +66,15 @@ class MultiNavServer:
         if msg.car_ready:
             rospy.loginfo("Car " + str(msg.id) + " is ready")
             self._available_cars.append(int(msg.id))
+            # The car finished transporting the object, then add the station to working stations list
+            self._working_stations.append(self._jobs[msg.job]["station"])
 
     def arm_status_callback(self, msg):
         # type: (ArmStatus) -> None
         # If a station arm finished working
         if msg.status and msg.arm_id >= self._n_cars:
             rospy.loginfo("Server: Arm " + str(msg.arm_id) + " finished working")
+            self._available_jobs.append(msg.job)
             self._available_stations.append(msg.arm_id - self._n_cars)
             self._working_stations.remove(msg.arm_id - self._n_cars)
             self._stations[msg.arm_id - self._n_cars].is_working = False
@@ -134,11 +136,11 @@ class MultiNavServer:
             rospy.logwarn("Invalid point index")
             return
         # dispatch car to point and set mission object and set target indices
-        self._cars[car_index].set_object(job)
+        self._cars[car_index].set_working_obj_color(self._jobs[job]["target_color"])
         self._cars[car_index].set_moving_targets(route[0], route[1])
         self._cars[car_index].activate_car()
         # Set the station's job that it will be doing. The station should be the route's end point
-        self._stations[route[1]].set_job(job)
+        self._stations[route[1]].set_working_color(self._jobs[job]["target_color"])
         # Add the car to working_car list
         self._working_cars.append(car_index)
         # Add the job to working_job list

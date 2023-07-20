@@ -4,7 +4,8 @@ import rospy, sys, os
 from geometry_msgs.msg import Twist, PoseStamped
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal
 from arm_status_msgs.msg import ArmStatus
-from Arm_util.arm_static import Arm_static
+from arm_work_msgs.msg import ArmWork
+
 
 class Station:
     def __init__(self, id=0):
@@ -13,21 +14,18 @@ class Station:
         self._input = MoveBaseGoal()
         self._output = MoveBaseGoal()
         self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
+        self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
         self.is_working = False
-        self._job = "" # type: str # Job name
-        self._arm = Arm_static(self._id, 3)
+        self._color = "" # type: str # Job name
 
-    def set_arm_id(self, id):
-        # type: (int) -> None
-        self._arm.set_id(id)
 
-    def set_job(self, job):
+    def set_working_color(self, color):
         # type: (str) -> None
-        self._job = job
+        self._color = color
     
     def start_arm(self):
         # type: () -> None
-        self._arm.Arm_pick(self._job)
+        self.pub_arm_work.publish(ArmWork(self._id, "pick", self._color))
 
 
 class Stations():
