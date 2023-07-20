@@ -5,10 +5,10 @@ from geometry_msgs.msg import Twist
 from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import GoalID
 from arm_status_msgs.msg import ArmStatus
+from arm_work_msgs.msg import ArmWork
 from car_status_msgs.msg import CarStatus
 import actionlib
 from station import Stations
-from Arm_util.arm_car import Arm_car
 
 
 class Worker:
@@ -24,15 +24,14 @@ class Worker:
         self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         self.move_base_client.wait_for_server()
-        # TODO: Create Arm class
-        self._arm = Arm_car(self._id)
+        self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
 
         self._is_ready = True
         self._is_moving = False
         self._arm_picking = False
         self._arm_dropping = False
         self._arm_working = False
-        self._arm_obj = ""  # Working object
+        self._arm_obj_color = ""  # Working object
         self._curr_target = -1  # Current target index
         self._next_target = -1  # Next target index
 
@@ -43,13 +42,14 @@ class Worker:
         self.sub_arm_status.unregister()
         rospy.loginfo("Shutting down worker " + self._name)
 
-    def set_arm_id(self, id):
-        self._arm.set_id(id)
+    # Deprecated due to the use of ArmWork msgs
+    # def set_arm_id(self, id):
+    #     self._arm.set_id(id)
 
     def set_object(self, obj):
         # type: (str) -> None
         # Set the car's target object and mark both signs to true
-        self._arm_obj = obj
+        self._arm_obj_color = obj
         self._arm_picking = True
         self._arm_dropping = True
 
@@ -94,23 +94,22 @@ class Worker:
     def arm_pick(self, obj=""):
         # type: (str) -> None
         # TODO: Set arm to pick specific object
-        # self.Arm.arm_pick(obj)
-        self._arm.Arm_pick(obj)
+        msg = ArmWork(self._id, "pick", obj)
         self._arm_working = True
 
     def arm_drop(self):
         # TODO: Set arm to drop the object
+        msg = ArmWork(self._id, "drop", "")
         self._arm_working = True
-        pass
 
     def goal_result_callback(self, msg):
         # type: (MoveBaseActionResult) -> None
         if msg.status.status == 3:
             rospy.loginfo("Goal reached, setting car " + str(self._id) + " not moving, continuing to arm...")
             self._is_moving = False
-            if self._arm_obj != "": 
+            if self._arm_obj_color != "": 
                 # If the car has an object to pick, then pick it
-                self.arm_pick(self._arm_obj)
+                self.arm_pick(self._arm_obj_color)
             else:
                 # TODO: If the car has no object to pick, then drop the object
                 pass
@@ -138,4 +137,4 @@ class Worker:
                 self._arm_working = False
                 self._is_ready = True
                 # Publish car status
-                self.pub_car_status.publish(CarStatus(self._id, self._is_moving, self._is_ready))
+                self.pub_car_status.publish(CarStatus(self._id, self._job, self._is_ready))

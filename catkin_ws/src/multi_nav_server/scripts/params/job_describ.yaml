@@ -1,14 +1,14 @@
 job1:
-  target: red
+  target_color: red
   process: 3
   station: 0
 
 job2:
-  target: blue
+  target_color: blue
   process: 4
   station: 0
 
 job3:
-  target: yellow
+  target_color: yellow
   process: 2
   station: 0
