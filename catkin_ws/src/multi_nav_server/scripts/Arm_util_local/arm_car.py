@@ -11,7 +11,7 @@ class Arm_car(Arm_base):
         super().__init__(depth, Arm_Location, wucha, error_range, wait_time)
         self._num_judgments = num_judgments # 子类自己的参数
         self._work = ''
-        self._job = '' # Ros传过来的消息，告诉我们这是什么任务
+        self._job = '' # Ros传过来的消息，告诉我们这是什么任务。
 
         self._msg = ArmStatus()
         self._msg.status = False # 机械臂的状态初始化为False

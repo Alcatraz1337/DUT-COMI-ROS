@@ -25,7 +25,7 @@ class Arm_static(Arm_base):
         self.set_id(msg.arm_id)
         self._work = msg.work
         self._job = msg.job
-        self.set_color_information(msg.color)  # 设置夹取的颜色信息
+        self.set_color_information(msg.color)  # 设置夹取的颜色信息。
 
         # 执行相应的命令,pick+drop干完再传消息
         if self._work == 'pick':

@@ -3,7 +3,6 @@
 import time
 import rospy
 import tool_box
-# from arm_work_msgs.msg import ArmWork
 from errorAnalyzer import ErrorAnalyzer
 from Arm_Lib import Arm_Device
 
