@@ -15,7 +15,7 @@ class Station:
         self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
         self.is_working = False
         self._job = "" # type: str # Job name
-        self._arm = Arm_static(self._id, 3)
+        self._arm = Arm_static(self._id)
 
     def set_arm_id(self, id):
         # type: (int) -> None

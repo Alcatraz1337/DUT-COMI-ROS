@@ -25,7 +25,7 @@ class Worker:
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         self.move_base_client.wait_for_server()
         # TODO: Create Arm class
-        self._arm = Arm_car(self._id, 3)
+        self._arm = Arm_car(self._id)
 
         self._is_ready = True
         self._is_moving = False

@@ -39,6 +39,7 @@ class MultiNavServer:
             self._available_cars.append(0)
         else:
             for i in range(self._n_cars):
+                # TODO: Set to right car name
                 worker = Worker("car" + str(i), i)
                 worker.set_arm_id(i)
                 self._cars.append(worker)
