@@ -44,7 +44,7 @@ class Arm_base:
         pass
         # 在子类里具体细化
 
-    def execute_rotate(self, num_judgments)
+    def execute_rotate(self, num_judgments):
         # ros给Camera发送消息
         self._angle = self.recognize_angle(num_judgments)  # 返回计算所得的angle
         # 旋转
@@ -128,7 +128,7 @@ class Arm_base:
         if flag == False:
             angle = self._Arm.Arm_serial_servo_read(id) - (abs(angle) + wucha)
             time.sleep(1)
-            self.Arm.Arm_serial_servo_write(id, angle, 1500)
+            self._Arm.Arm_serial_servo_write(id, angle, 1500)
             time.sleep(1)
         else:
             angle = self._Arm.Arm_serial_servo_read(id) + (abs(angle) + wucha)
@@ -143,19 +143,4 @@ class Arm_base:
         self.arm_clamp_block(0)
         self.arm_move(p_mould, 1000)
         time.sleep(1)
-
-    # def sender(self, num_judgments):
-    #     # 创建消息对象
-    #     msg = Camera_Target()
-    #     # 信息打包
-    #     msg.ID = self.ID
-    #     msg.flag = self.flag
-    #     msg.flag_error = self.flag_error
-    #     msg.color_information = self.get_color_information()
-    #     msg.depth = self.depth
-    #     msg.error_range = self.error_range
-    #     msg.num_judgments = num_judgments
-    #
-    #     # 发布消息
-    #     self.pub_camera_target.publish(msg)
 

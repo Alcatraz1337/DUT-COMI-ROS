@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import rospy
-from arm_work_msgs.msg import ArmWork, ArmWorkResponse
+from arm_work_msgs.msg import ArmWork,ArmStatus
 from arm_base import Arm_base
 class Arm_car(Arm_base):
     def __init__(self, num_judgments,
@@ -13,29 +13,29 @@ class Arm_car(Arm_base):
         self._work = ''
         self._job = '' # Ros传过来的消息，告诉我们这是什么任务
 
-        self._armStatic_status = ArmWorkResponse()
-        self._armStatic_status.arm_status = False # 机械臂的状态初始化为False
+        self._msg = ArmStatus()
+        self._msg.status = False # 机械臂的状态初始化为False
         # 消息的注册
-        self.pub_arm_work = rospy.Publisher('ArmWorkResponse', ArmWorkResponse, queue_size=1)
+        self.pub_arm_work = rospy.Publisher('arm_status', ArmStatus, queue_size=1)
         # 消息的订阅
-        self.sub_camera_angle = rospy.Subscriber('ArmWork', ArmWork, self.call_back)
+        self.sub_camera_angle = rospy.Subscriber('arm_work', ArmWork, self.call_back)
 
     def call_back(self,msg):
         # 获取消息的内容
-        self._work = msg.work
         self.set_id(msg.arm_id)
+        self._work = msg.work
         self._job = msg.job
         self.set_color_information(msg.color) # 设置夹取的颜色信息
 
-        # 执行相应的命令
+        # 执行相应的命令，pick / drop任意一个干完就发一次消息
         if self._work == 'pick':
             self.Arm_pick()
-
+            self.sender()  # ros返回消息
+            self.reset()  # 重置信息
         elif self._work == 'drop':
             self.Arm_drop()
-
-        self.sender()  # ros返回消息
-        self.reset()  # 重置信息
+            self.sender()  # ros返回消息
+            self.reset()  # 重置信息
 
     # 程序执行完毕后，一些必要的信息必须重置为开始状态
     def reset(self):
@@ -45,15 +45,14 @@ class Arm_car(Arm_base):
         self._angle = None
         self._armStatic_status = False
 
-    # 机械臂夹取完毕后，返回消息
+    # 机械臂夹取完毕后，返回消息，
     def sender(self):
-        # 创建消息对象
-        msg = ArmWorkResponse()
-        msg.arm_id = self.get_id()
-        msg.arm_status = True
-        msg.job = self._job
+        self._msg.arm_id = self.get_id()
+        self._arm_status = True
+        self._job = self._job
+
         # 发送消息
-        self.pub_arm_work.publish(msg)
+        self.pub_arm_work.publish(self._msg)
 
     def Arm_pick(self):
         # 开始识别识别，返回角度
