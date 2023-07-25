@@ -16,8 +16,9 @@ class Station:
         self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
         self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
         self.is_working = False
-        self._color = "" # type: str # Job name
-        self._job = ""
+        self.occupied_picking = False # type: bool # Is the station occupied by a worker picking up an object?
+        self._color = "" # type: str # Color of the object
+        self._job = "" # type: str # Job of the object
 
 
     def set_job(self, job):

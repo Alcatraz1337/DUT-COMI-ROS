@@ -21,7 +21,7 @@ class Worker:
         # self.sub_arm_status = rospy.Subscriber('/arm_status', ArmStatus, self.arm_status_callback) # Deprecated
         self.pub_cmd_vel = rospy.Publisher(self._name + '/cmd_vel', Twist, queue_size=1)
         self.pub_cancel_goal = rospy.Publisher(self._name + '/move_base/cancel', GoalID, queue_size=1)
-        self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1)
+        # self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1) # Deprecated
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
         self.move_base_client.wait_for_server()
         self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
@@ -40,7 +40,6 @@ class Worker:
         self.pub_cancel_goal.publish(GoalID())
         self.pub_cmd_vel.publish(Twist())
         self.sub_goal_result.unregister()
-        self.sub_arm_status.unregister()
         rospy.loginfo("Shutting down worker " + self._name)
 
     # Deprecated due to the use of ArmWork msgs
@@ -84,7 +83,7 @@ class Worker:
         # All the situation is go to output first then input
         # if the next target is -1, then should go to input
         goal = self._stations[self.curr_target]._output if self._next_target != -1 \
-                                                        else self._stations[self.curr_target]._input
+            else self._stations[self.curr_target]._input
         goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self.curr_target) + " to car " + str(self._id))
@@ -112,7 +111,7 @@ class Worker:
         if msg.status.status == 3:
             rospy.loginfo("Goal reached, setting car " + str(self._id) + " not moving, continuing to arm...")
             self.is_moving = False
-            if self.arm_picking: 
+            if self.arm_picking:
                 # If the car has an object to pick, then pick it
                 self.arm_pick(self._arm_obj_color)
             else:
