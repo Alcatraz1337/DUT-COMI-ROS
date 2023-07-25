@@ -82,8 +82,8 @@ class Worker:
         goal = MoveBaseGoal()
         # All the situation is go to output first then input
         # if the next target is -1, then should go to input
-        goal = self._stations[self.curr_target]._output if self._next_target != -1 \
-            else self._stations[self.curr_target]._input
+        goal = self._stations[self.curr_target].output if self._next_target != -1 \
+            else self._stations[self.curr_target].input
         goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self.curr_target) + " to car " + str(self._id))
