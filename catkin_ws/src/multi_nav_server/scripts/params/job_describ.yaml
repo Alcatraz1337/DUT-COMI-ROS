@@ -1,14 +1,20 @@
 job1:
   target_color: red
   process: 3
-  station: 0
+  transfer:
+    start: 0
+    end: 0
 
 job2:
   target_color: blue
   process: 4
-  station: 0
+  transfer:
+    start: 0
+    end: 0
 
 job3:
   target_color: yellow
   process: 2
-  station: 0
+  transfer:
+    start: 0
+    end: 0
