@@ -1,0 +1,8 @@
+# config.yaml
+ID: 0
+depth: 210
+Arm_Location: (0, 0, 0)
+wucha: 1
+wait_time: 12
+error_range: 12
+p_mould: [90, 130, 0, 0, 90]

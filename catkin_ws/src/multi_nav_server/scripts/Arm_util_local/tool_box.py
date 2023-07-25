@@ -1,8 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import serial
 import serial.tools.list_ports
 from decimal import Decimal, getcontext
 import numpy as np
-import cv2
 import math
 
 
@@ -30,18 +31,6 @@ def open_serial():
         print("打开串口失败。")
     return ser
 
-
-# def setial_communicatiuon(ser):
-#     coordinates = None
-#     # 接收从 Spresense 传来的指定数据
-#     data = ser.readline().decode().strip()  # 解码并去除首尾的空白字符
-#     if data[:4] == 'Data':
-#         # 解析坐标数据
-#         head, x, y = data.split(',')
-#         x = int(x)
-#         y = int(y)
-#         coordinates = (x, y)
-#     return coordinates
 
 def setial_communicatiuon_new(ser):
     coordinates = None
@@ -74,10 +63,10 @@ def setial_communicatiuon_mutiple(ser):
         prefix, color_red, red_x, red_y, width_red, height_red, color_yellow, yellow_x, yellow_y, width_y, height_y, color_blue, blue_x, blue_y, width_b, height_b, color_green, green_x, green_y, width_g, height_g = data.split(
             ',')
 
-        coordinates = (
+        coordinates = [
         color_red, int(red_x), int(red_y), int(width_red), int(height_red), color_yellow, int(yellow_x), int(yellow_y),
         int(width_y), int(height_y), color_blue, int(blue_x), int(blue_y), int(width_b), int(height_b), color_green,
-        int(green_x), int(green_y), int(width_g), int(height_g))
+        int(green_x), int(green_y), int(width_g), int(height_g)]
 
         # print("Received data:", data)
         # print("coordinates  :",coordinates)
@@ -118,28 +107,7 @@ def check_coloridx_imformation(result, color_information):
         width = result[18]
         height = result[19]
         flag = True
-    return flag, (x, y, width, height)
-
-
-# 图像坐标转换为世界坐标
-def image_to_world(pixel_coords, depth, K, D):
-    # 转换为齐次坐标
-    pixel_coords_homogeneous = np.array([[pixel_coords[0], pixel_coords[1]]], dtype=np.float64)
-
-    # 去除畸变
-    undistorted_coords = cv2.undistortPoints(pixel_coords_homogeneous, K, D)
-
-    # 相机坐标系下的归一化坐标
-    normalized_coords = np.append(undistorted_coords[0], 1.0)
-
-    # 相机坐标系下的世界坐标
-    world_coords_homogeneous = np.linalg.inv(K) @ normalized_coords * depth
-
-    # 转换为世界坐标
-    world_coords = np.array([world_coords_homogeneous[0], world_coords_homogeneous[1], world_coords_homogeneous[2]],
-                            dtype=np.float64)
-
-    return world_coords
+    return flag, [x, y, width, height]
 
 
 # 方法更新-v1
@@ -162,8 +130,8 @@ def image_to_world_v2(z_points, image_points):
     camera_matrix = np.array([[996.481060885886, 0, 635.730545034981],
                               [0, 995.907916253828, 486.726116189548],
                               [0, 0, 1]], dtype=np.float64)
-    fx = image_points[0] + image_points[2] / 2
-    fy = image_points[1] + image_points[3] / 2
+    fx = image_points[0] + image_points[2]
+    fy = image_points[1] + image_points[3]
     # fx = image_points[0]
     # fy = image_points[1]
     x_points = (z_points * (fx - camera_matrix[0][2])) / camera_matrix[0][0]
