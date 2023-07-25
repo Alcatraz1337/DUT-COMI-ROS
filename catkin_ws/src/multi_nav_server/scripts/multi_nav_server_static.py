@@ -128,7 +128,7 @@ class MultiNavServer:
         First get the job's currently working station index
         Second get the job's next station index from available stations
         """
-        start = self._jobs[job]["transer"]["start"]
+        start = self._jobs[job]["transfer"]["start"]
         # Check if the start station is not occupied
         if not self._stations[start].occupied_picking:
             self._stations[start].occupied_picking = True
