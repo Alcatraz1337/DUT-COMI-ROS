@@ -1,0 +1,29 @@
+<launch>
+    <arg name="robot_type" value="$(env ROBOT_TYPE)" doc="robot_type [X1,X3,X3plus,R2,X7]"/>
+    <arg name="move_forward_only" default="False"/>
+    <arg name="explorer" default="explore"/>
+    <!-- 驱动模块 || driver module -->
+    <include file="$(find astra_camera)/launch/astrapro.launch"/>
+    <include file="$(find yahboomcar_bringup)/launch/bringup.launch"/>
+    <include file="$(find comicar_nav)/launch/library/gmapping.launch"/>
+    <include file="$(find comicar_nav)/launch/library/depthimage_to_laserscan.launch">
+        <arg name="scan_topic" default="scan"/>
+    </include>
+    <include file="$(find comicar_nav)/launch/library/app.launch"/>
+    <!-- move_base -->
+    <include file="$(find comicar_nav)/launch/library/move_base.launch">
+        <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+    </include>
+    <!-- Autonomous Explorer Node -->
+    <!--include file="$(find comicar_nav)/launch/$(arg explorer).launch"-->
+    <!--/include-->
+    <!-- Coordinate conversion -->
+    <!-- node pkg="tf" type="static_transform_publisher" name="camera_link_to_laser"
+          args="0 0 0 0 0 0  /camera_link /laser 30" if="$(eval arg('robot_type') == 'X3')"/-->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_laser"
+          args="0 0 0 0 0 3.14  /base_link /laser 30" if="$(eval arg('robot_type') == 'X3')"/>
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find comicar_nav)/rviz/yahboomcar_map.rviz"/>
+    <!-- <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard"  output="screen"/> -->
+</launch>
+

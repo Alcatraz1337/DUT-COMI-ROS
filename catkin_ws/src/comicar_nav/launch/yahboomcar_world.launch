@@ -1,0 +1,18 @@
+<launch>
+  <!--arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/-->
+  <arg name="model" default="$(env ROBOT_TYPE)" doc="model type [X1,X3,X3plus,R2,X7]"/>
+  <arg name="x_pos" default="-2.0"/>
+  <arg name="y_pos" default="0.5"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="ns" default="robot1"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find ros_autonomous_slam)/worlds/turtlebot3_house.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find yahboomcar_description)/urdf/yahboomcar_$(arg model).urdf.xacro' ns:=$(arg ns)"/>
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model yahboomcar_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+</launch>

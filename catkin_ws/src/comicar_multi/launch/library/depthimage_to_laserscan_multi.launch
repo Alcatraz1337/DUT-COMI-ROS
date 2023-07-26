@@ -1,0 +1,11 @@
+<launch>
+    <arg name="ns" default="robot1"/>
+    <group ns="$(arg ns)">
+    	<node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan" output="screen">
+            <remap from="image" to="/$(arg ns)/camera/depth/image"/>
+            <remap from="camera_info" to="/$(arg ns)/camera/depth/camera_info"/>
+            <param name="scan" value="$(arg ns)/scan"/>
+            <param name="output_frame_id" value="$(arg ns)/camera_depth_frame"/>
+    	</node>  
+    </group>
+</launch>

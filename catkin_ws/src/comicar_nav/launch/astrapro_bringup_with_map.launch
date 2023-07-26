@@ -1,0 +1,33 @@
+<launch>
+    <arg name="robot_type" value="$(env ROBOT_TYPE)" doc="robot_type [X1,X3,X3plus,R2,X7]"/>
+    <arg name="move_forward_only" default="False"/>
+    <arg name="explorer" default="explore"/>
+    <arg name="use_rviz" default="true"/>
+    <arg name="map" default="map5"/>
+    <!-- 驱动模块 || driver module -->
+    <include file="$(find astra_camera)/launch/astrapro.launch"/>
+    <include file="$(find yahboomcar_bringup)/launch/bringup.launch">
+    </include>
+    <!--include file="$(find comicar_nav)/launch/library/gmapping.launch"/-->
+    <include file="$(find comicar_nav)/launch/library/depthimage_to_laserscan.launch">
+        <arg name="scan_topic" default="scan"/>
+    </include>
+    <!-- move_base -->
+    <include file="$(find comicar_nav)/launch/library/move_base.launch">
+        <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+    </include>
+
+    <!-- Autonomous Explorer Node -->
+    <!-- <include file="$(find comicar_nav)/launch/$(arg explorer).launch"> -->
+    <!--/include-->
+    
+    <!-- AMCL自适应蒙特卡洛定位 -->
+    <include file="$(find comicar_nav)/launch/library/amcl.launch"/>
+
+    <!-- Coordinate conversion -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find comicar_nav)/maps/$(arg map).yaml"/>
+    <node pkg="tf" type="static_transform_publisher" name="camera_link_to_laser"
+          args="0 0 0 0 0 0  /camera_link /laser 30" if="$(eval arg('robot_type') == 'X3')"/>
+    <include file="$(find comicar_nav)/launch/view/view_navigate.launch" if="$(arg use_rviz)"/>
+</launch>
+
