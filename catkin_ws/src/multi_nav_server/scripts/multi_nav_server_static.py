@@ -165,7 +165,12 @@ class MultiNavServer:
 
     def all_job_done(self):
         # type: () -> bool
-        return len(self._available_jobs) == 0 and len(self._working_jobs) == 0
+        for job in self._jobs.items():
+            if job[1]["process"] >= 0:
+                return False
+        return True
+
+        # return len(self._available_jobs) == 0 and len(self._working_jobs) == 0
 
     def dispatch_car(self):
         # type:() -> None
