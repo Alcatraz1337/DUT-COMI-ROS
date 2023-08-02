@@ -23,6 +23,7 @@ class Worker:
         self.pub_cancel_goal = rospy.Publisher(self._name + '/move_base/cancel', GoalID, queue_size=1)
         # self.pub_car_status = rospy.Publisher('/car_status', CarStatus, queue_size=1) # Deprecated
         self.move_base_client = actionlib.SimpleActionClient(self._name + '/move_base', MoveBaseAction)
+        rospy.loginfo("[Worker {}] Waiting for move_base server...".format(self._id))
         self.move_base_client.wait_for_server()
         self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
 
