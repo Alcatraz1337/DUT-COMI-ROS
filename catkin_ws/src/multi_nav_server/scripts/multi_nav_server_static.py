@@ -35,19 +35,23 @@ class MultiNavServer:
         else:
             for i in range(self._n_cars):
                 # Robot name starts from robot1
+                rospy.loginfo("[Server] Initializing car " + str(i + 1))
                 worker = Worker("robot" + str(i + 1), i + 1)
                 self._cars.append(worker)
                 self._available_cars_id.append(i + 1)
         self._n_stations = len(self._stations)
         # Initialize static stations and set station arm id. And add available stations
         for i in range(self._n_stations):
+            rospy.loginfo("[Server] Initializing station " + str(self._n_cars + i + 1))
             self._stations[i]._id = self._n_cars + i + 1 # station id starts from n_cars + 1
             if i != 0:  # The first station is the distribution station, so it should not be added to available stations
                 self._available_stations_idx.append(i)
         # Initialize jobs
+        rospy.loginfo("[Server] Initializing jobs...")
         self._jobs = Jobs().get_jobs()
         for job in self._jobs.items():
             self._available_jobs_name.append(job[0])
+        rospy.loginfo("[Server] Done initializing server")
 
     def shutdown(self):
         for i in range(self._n_cars):
