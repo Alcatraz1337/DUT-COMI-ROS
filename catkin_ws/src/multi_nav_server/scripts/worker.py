@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import rospy, sys, os
 from geometry_msgs.msg import Twist
@@ -33,7 +33,7 @@ class Worker:
         self.arm_working = False
         self._job = ""  # Current job
         self._arm_obj_color = ""  # Working object
-        self.curr_target = -1  # Current target index
+        self._curr_target = -1  # Current target index
         self._next_target = -1  # Next target index
 
     def shutdown(self):
@@ -59,9 +59,9 @@ class Worker:
         # Check if the targets are valid
         if curr_target < 0 or curr_target >= len(self._stations):
             rospy.logwarn("Invalid current target index")
-            self.curr_target = -1
+            self._curr_target = -1
         else:
-            self.curr_target = curr_target
+            self._curr_target = curr_target
 
         if next_target < 0 or next_target >= len(self._stations):
             rospy.logwarn("Invalid next target index")
@@ -72,23 +72,23 @@ class Worker:
     def activate_car(self):
         # type: () -> None
         # Error handling
-        if self.curr_target < 0 or self.curr_target >= len(self._stations):
-            rospy.logwarn("Invalid current target index")
+        if self._curr_target < 0 or self._curr_target >= len(self._stations):
+            rospy.logwarn("[Worker {}]: Invalid current target index".format(self._id))
             return
         if self.is_moving:
-            rospy.logwarn("Car " + str(self._id) + " is already moving")
+            rospy.logwarn("[Worker " + str(self._id) + "] is already moving")
             return
         # Send goal
         goal = MoveBaseGoal()
         # All the situation is go to output first then input
         # if the next target is -1, then should go to input
-        goal = self._stations[self.curr_target].output if self._next_target != -1 \
-            else self._stations[self.curr_target].input
+        goal = self._stations[self._curr_target].output if self._next_target != -1 \
+            else self._stations[self._curr_target].input
         goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(goal)
-        rospy.loginfo("Activate: Sending goal " + str(self.curr_target) + " to car " + str(self._id))
+        rospy.loginfo("Activate: Sending goal " + str(self._curr_target) + " to car " + str(self._id))
         # Move next target to current target
-        self.curr_target = self._next_target
+        self._curr_target = self._next_target
         self._next_target = -1
         self.is_ready = False
         self.is_moving = True
@@ -108,13 +108,14 @@ class Worker:
 
     def goal_result_callback(self, msg):
         # type: (MoveBaseActionResult) -> None
+        if not isinstance(msg, MoveBaseActionResult): return
         if msg.status.status == 3:
             rospy.loginfo("Goal reached, setting car " + str(self._id) + " not moving, continuing to arm...")
             self.is_moving = False
             if self.arm_picking:
                 # If the car has an object to pick, then pick it
                 self.arm_pick(self._arm_obj_color)
-            else:
+            elif self.arm_dropping:
                 # If the car has no object to pick, then drop the object
                 self.arm_drop()
 

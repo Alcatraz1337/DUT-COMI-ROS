@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
-import rospy, sys, os
-from geometry_msgs.msg import Twist, PoseStamped
-from move_base_msgs.msg import MoveBaseActionResult, MoveBaseGoal
-from arm_status_msgs.msg import ArmStatus
+import rospy
+from move_base_msgs.msg import MoveBaseGoal
 from arm_work_msgs.msg import ArmWork
 
 
@@ -13,7 +11,7 @@ class Station:
         # Initialize a list called points, with given PoseStamped arguments.
         self.input = MoveBaseGoal()
         self.output = MoveBaseGoal()
-        self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
+        # self.pub_arm_status = rospy.Publisher('/arm_status', ArmStatus, queue_size=1)
         self.pub_arm_work = rospy.Publisher('/arm_work', ArmWork, queue_size=1)
         self.is_working = False
         self.occupied_picking = False  # type: bool # Is the station occupied by a worker picking up an object?
