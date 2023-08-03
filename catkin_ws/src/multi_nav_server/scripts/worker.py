@@ -119,6 +119,9 @@ class Worker:
             elif self.arm_dropping:
                 # If the car has no object to pick, then drop the object
                 self.arm_drop()
+        elif msg.status.status == 4:
+            rospy.logwarn_throttle(1, "Planning failed for car {}, re-activating...".format(self._id))
+            self.activate_car()
 
     """
     The following code is deprecated due to all arm related functions are handled in the server
