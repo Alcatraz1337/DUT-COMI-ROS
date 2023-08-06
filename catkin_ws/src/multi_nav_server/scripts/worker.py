@@ -70,8 +70,8 @@ class Worker:
         else:
             self._next_target = next_target
 
-    def activate_car(self):
-        # type: () -> None
+    def activate_car(self, goal_status=3):
+        # type: (int) -> None
         # Error handling
         if self._curr_target < 0 or self._curr_target >= len(self._stations):
             rospy.logwarn("[Worker {}]: Invalid current target index".format(self._id))
@@ -88,9 +88,11 @@ class Worker:
         goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self._curr_target) + " to car " + str(self._id))
-        # Move next target to current target
-        self._curr_target = self._next_target
-        self._next_target = -1
+        # If the goal status is 3, then the car is going to the next target
+        if goal_status == 3:
+            # Move next target to current target
+            self._curr_target = self._next_target
+            self._next_target = -1
         self.is_ready = False
         self.is_moving = True
 
@@ -121,7 +123,7 @@ class Worker:
                 self.arm_drop()
         elif msg.status.status == 4:
             rospy.logwarn_throttle(1, "Planning failed for car {}, re-activating...".format(self._id))
-            self.activate_car()
+            self.activate_car(msg.status.status)
 
     """
     The following code is deprecated due to all arm related functions are handled in the server

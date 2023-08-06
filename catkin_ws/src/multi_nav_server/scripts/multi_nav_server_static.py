@@ -164,15 +164,27 @@ class MultiNavServer:
 
     def has_available_jobs(self):
         # type: () -> bool
-        return len(self._available_jobs_name) > 0
+        if len(self._available_jobs_name) > 0:
+            return True
+        else:
+            rospy.logwarn_throttle(1, "[Server] No more available jobs")
+            return False
 
     def has_available_cars(self):
         # type: () -> bool
-        return len(self._available_cars_id) > 0
+        if len(self._available_cars_id) > 0:
+            return True
+        else:
+            rospy.logwarn_throttle(1, "[Server] No more available cars")
+            return False
 
     def has_available_stations(self):
         # type: () -> bool
-        return len(self._available_stations_idx) > 0
+        if len(self._available_stations_idx) > 0:
+            return True
+        else:
+            rospy.logwarn_throttle(1, "[Server] No more available stations")
+            return False
 
     def all_job_done(self):
         # type: () -> bool
@@ -195,9 +207,24 @@ class MultiNavServer:
         Also should announce the station what job it will be working on
         """
         # Get job and car index using FIFO greedy algorithm
-        job = self._available_jobs_name.pop(0)
-        car_id = self._available_cars_id.pop(0)
+        try:
+            job = self._available_jobs_name[0]
+        except IndexError as e:
+            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a job")
+            return
+        
+        try:
+            car_id = self._available_cars_id[0]
+        except IndexError as e:
+            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a car")
+            return
+            
         route = self.get_dispatch_routes(job)
+        if route == (-1, -1):
+            rospy.logwarn_throttle(1, "[Server] Bad route, skipping...")
+            return
+        self._available_jobs_name.pop(0)
+        self._available_cars_id.pop(0)
         rospy.loginfo("Get route for car " + str(car_id) + ": " + str(route))
         # Check car_index and point_index
         if car_id <= 0 or car_id > len(self._cars):

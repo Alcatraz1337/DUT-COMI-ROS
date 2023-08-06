@@ -1,19 +1,19 @@
 job1:
-  target_color: red
+  target_color: Red
   process: 3
   transfer:
     start: 0
     end: 0
 
 job2:
-  target_color: blue
+  target_color: Blue
   process: 4
   transfer:
     start: 0
     end: 0
 
 job3:
-  target_color: yellow
+  target_color: Yellow
   process: 2
   transfer:
     start: 0
