@@ -33,6 +33,7 @@ class Arm_base(object):
         self._flag = False  # 循环标识位
         self._flag_error = False  # 误差标识位
         self._Arm = Arm_Device()  # 初始化的时就应该生成机械臂对象
+<<<<<<< Updated upstream
         self._angle = 0.0  # 初始化是角度为空
         self._coordinates = []
 
@@ -42,6 +43,20 @@ class Arm_base(object):
 
     def set_color_information(self, color_information):  # 通过ros消息得到颜色信息
         self.color_information = color_information
+=======
+        self._angle = None  # 初始化是角度为空
+        self._p_mould = [90, 130, 0, 0, 90] # 机械臂的等待位置
+        # 初始化市对Camera_Status消息的状态码进行初始化
+        self._camera_status = Camera_Status()
+        self._camera_status.status = False
+        # 初始化时注册消息的发布
+        self.pub_camera_target = rospy.Publisher("Camera_Target", Camera_Target, queue_size=1)
+        self.pub_camera_angle = rospy.Publisher("Camera_Angle", Camera_Angle, queue_size=1)
+        self.pub_camera_status = rospy.Publisher("Camera_Status", Camera_Status, queue_size=1)
+
+    def set_color_information(self, color_information):
+        self._color_information = color_information
+>>>>>>> Stashed changes
 
     def get_color_information(self):
         return self.color_information

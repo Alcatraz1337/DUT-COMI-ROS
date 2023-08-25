@@ -4,7 +4,11 @@ import rospy
 import os
 import yaml
 from arm_base import Arm_base
+<<<<<<< Updated upstream
 from arm_work_msgs.msg import ArmWork,ArmStatus
+=======
+from Camera_msgs.msg import Camera_Angle, Camera_Target,Camera_Status
+>>>>>>> Stashed changes
 class Arm_static(Arm_base):
     def __init__(self, num_judgments=15,
                  depth=210, Arm_Location = (0, 0, 0), wucha = 1,
@@ -12,8 +16,13 @@ class Arm_static(Arm_base):
         super().__init__(depth, Arm_Location, wucha, error_range, wait_rospy)
         self._ID = 4  # 每个机械臂的唯一标识
         self._num_judgments = num_judgments # 子类自己的参数
+<<<<<<< Updated upstream
         self._work = ''
         self._job = ''  # Ros传过来的消息，告诉我们这是什么任务
+=======
+        # 消息的订阅
+        self.sub_camera_angle = rospy.Subscriber('Camera_Angle', Camera_Angle, self.execute_rotate)
+>>>>>>> Stashed changes
 
         self._msg = ArmStatus()
         self._msg.status = False  # 机械臂的状态初始化为False
