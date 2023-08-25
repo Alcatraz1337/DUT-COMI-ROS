@@ -13,10 +13,16 @@ class Arm_car(Arm_base):
                  error_range = 12, wait_time = 12):
         super(Arm_car,self).__init__(depth, Arm_Location, wucha, error_range, wait_time)
         self._num_judgments = num_judgments # 子类自己的参数
+<<<<<<< Updated upstream
         self._analyzer = ErrorAnalyzer(self._error_range, self._num_judgments)  # 生成误差分析对象 num_judgments,车是4，四角固定是15
         self._work = ''
         self._job = '' # Ros传过来的消息，告诉我们这是什么任务。
         self._example_flag = False
+=======
+        self.job = '' # Ros传过来的消息，告诉我们这是什么任务
+        # 消息的订阅
+        self.sub_camera_angle = rospy.Subscriber('Camera_Angle', Camera_Angle, self.execute_rotate)
+>>>>>>> Stashed changes
 
         self._msg = ArmStatus()
         self._msg.status = False # 机械臂的状态初始化为False

@@ -24,11 +24,11 @@ class Arm_base(object):
         self._ID = config_data["ID"]  # 每个机械臂的唯一标识
         self._color_information = None  # 服务器传来的颜色信息
         self._depth = int(config_data["depth"])  # 镜头距离物块的深度
-        self._Arm_Location = config_data["Arm_Location"]  # 坐标系的原点在机械臂的位置
-        self._wucha = config_data["wucha"]  # 旋转角度误差
-        self._wait_time = config_data["wait_time"]  # 等待索尼相机打开后稳定下来的时间
-        self._error_range = config_data["error_range"]  # 识别框的误差允许范围
-        self._p_mould = config_data["p_mould"]  # 机械臂的等待位置
+        self._Arm_Location = (0, 0, 0)  # 坐标系的原点在机械臂的位置
+        self._wucha = int(config_data["wucha"])  # 旋转角度误差
+        self._wait_time = int(config_data["wait_time"]) # 等待索尼相机打开后稳定下来的时间
+        self._error_range = int(config_data["error_range"])  # 识别框的误差允许范围
+        self._p_mould = [90, 130, 0, 0, 90]  # 机械臂的等待位置
 
         self._flag = False  # 循环标识位
         self._flag_error = False  # 误差标识位
@@ -38,7 +38,7 @@ class Arm_base(object):
 
         self._ser = tool_box.open_serial()  # 初始化时就打开串口打开串口,返回串口对象
         self.arm_centrality()  # 机械臂归中，达到抓取位置
-        rospy.loginfo("base is complete")
+        rospy.loginfo("base is complete……")
 
     def set_color_information(self, color_information):  # 通过ros消息得到颜色信息
         self.color_information = color_information
