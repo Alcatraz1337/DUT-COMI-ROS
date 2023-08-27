@@ -158,6 +158,7 @@ class MultiNavServer:
         if len(self._working_stations_idx) > 0:
             for station_index in self._working_stations_idx:
                 if not self._stations[station_index].is_working:
+                    rospy.loginfo("[Server] Starting station " + str(station_index + self._n_cars + 1))
                     self._stations[station_index].is_working = True
                     self._stations[station_index].start_arm()
             

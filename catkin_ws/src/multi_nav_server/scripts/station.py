@@ -29,6 +29,7 @@ class Station:
     def start_arm(self):
         # type: () -> None
         self.pub_arm_work.publish(ArmWork(self._id, "pick", self._job, self._color))
+        rospy.loginfo("[Station {}] Arm started".format(self._id))
 
 
 class Stations:
