@@ -94,7 +94,7 @@ depth = 0
 # 搜索对象
 sub_camera_target = rospy.Subscriber('Camera_Target', Camera_Target, call_back)
 
-while not rospy.shutdown(shutdown):
+while not rospy.is_shutdown(shutdown):
     # ros发布，返回信息
     if target != "":
         # TODO: 识别(考虑识别不到的情况)

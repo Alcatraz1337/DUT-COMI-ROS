@@ -14,7 +14,7 @@ class Arm_static(Arm_base):
         self._num_judgments = num_judgments # 子类自己的参数
         self._work = ''
         self._job = ''  # Ros传过来的消息，告诉我们这是什么任务
-        self._example_flag = False
+        # self._example_flag = False
 
         self._msg = ArmStatus()
         self._msg.status = False  # 机械臂的状态初始化为False
@@ -22,25 +22,26 @@ class Arm_static(Arm_base):
         self.pub_arm_static_status = rospy.Publisher('arm_status', ArmStatus, queue_size=1)
         # 消息的订阅
         self.sub_arm_static_work = rospy.Subscriber('arm_static_work', ArmWork, self.call_back)
+        rospy.loginfo("car is complete……")
 
     def call_back(self,msg):
         if self._ID == msg.arm_id: # 如果ID是属于固定机械臂ID列表中的，则执行，否则就不执行回调函数
             rospy.loginfo("arm_static: call back has been called")
-            if not self._example_flag:
+            # if not self._example_flag: # 只执行一次设置的变量，现在需要删除，不然机械臂动不了
             # 获取消息的内容
-                self._work = msg.work
-                self._job = msg.job
-                self.set_color_information(msg.color)  # 设置夹取的颜色信息。
+            self._work = msg.work
+            self._job = msg.job
+            self.set_color_information(msg.color)  # 设置夹取的颜色信息。
 
-                # 执行相应的命令,pick+drop干完再传消息
-                if self._work == 'pick':
-                    self.Arm_pick()
-                    self.Arm_drop()
+            # 执行相应的命令,pick+drop干完再传消息
+            if self._work == 'pick':
+                self.Arm_pick()
+                self.Arm_drop()
 
-                    self.sender()  # ros返回消息
-                    self.reset()  # 重置信息
-                rospy.loginfo("arm_car: flag has been changed True")
-                self._example_flag = True
+                self.sender()  # ros返回消息
+                self.reset()  # 重置信息
+            rospy.loginfo("arm_car: flag has been changed True")
+            # self._example_flag = True
 
 
     # 程序执行完毕后，一些必要的信息必须重置为开始状态

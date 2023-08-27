@@ -18,7 +18,7 @@ class Arm_car(Arm_base):
         self._analyzer = ErrorAnalyzer(self._error_range, self._num_judgments)  # 生成误差分析对象 num_judgments,车是4，四角固定是15
         self._work = ''
         self._job = ''  # Ros传过来的消息，告诉我们这是什么任务。
-        self._example_flag = False
+        # self._example_flag = False
 
         self._msg = ArmStatus()
         self._msg.status = False  # 机械臂的状态初始化为False
@@ -26,31 +26,31 @@ class Arm_car(Arm_base):
         self.pub_arm_status = rospy.Publisher('arm_status', ArmStatus, queue_size=1)
         # 消息的订阅
         self.sub_arm_work = rospy.Subscriber('arm_work', ArmWork, self.call_back)
-        print("car is complete")
+        rospy.loginfo("car is complete……")
 
     def call_back(self, msg):
         if self._ID == msg.arm_id:
             rospy.loginfo("arm_car: call back has been called")
-            if not self._example_flag:
-                # 获取消息的内容
-                self._work = msg.work
-                self._job = msg.job
-                self.set_color_information(msg.color)  # 设置夹取的颜色信息
+            # if not self._example_flag: # 只执行一次设置的变量，现在需要删除，不然机械臂动不了
+            # 获取消息的内容
+            self._work = msg.work
+            self._job = msg.job
+            self.set_color_information(msg.color)  # 设置夹取的颜色信息
 
-                # 执行相应的命令，pick / drop任意一个干完就发一次消息
-                if self._work == 'pick':
-                    self.Arm_pick()
-                    self.sender()  # ros返回消息
-                    self.reset()  # 重置信息
-                    rospy.loginfo("arm_car: flag has been changed True")
-                    self._example_flag = True
+            # 执行相应的命令，pick / drop任意一个干完就发一次消息
+            if self._work == 'pick':
+                self.Arm_pick()
+                self.sender()  # ros返回消息
+                self.reset()  # 重置信息
+                rospy.loginfo("arm_car: flag has been changed True")
+                # self._example_flag = True
 
-                elif self._work == 'drop':
-                    self.Arm_drop()
-                    self.sender()  # ros返回消息
-                    self.reset()  # 重置信息
-                    rospy.loginfo("arm_car: flag has been changed True")
-                    self._example_flag = True
+            elif self._work == 'drop':
+                self.Arm_drop()
+                self.sender()  # ros返回消息
+                self.reset()  # 重置信息
+                rospy.loginfo("arm_car: flag has been changed True")
+                # self._example_flag = True
 
     # 程序执行完毕后，一些必要的信息必须重置为开始状态
     def reset(self):
