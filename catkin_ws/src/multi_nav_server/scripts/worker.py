@@ -59,7 +59,7 @@ class Worker:
         # type: (int, int) -> None
         # Check if the targets are valid
         if curr_target < 0 or curr_target >= len(self._stations):
-            rospy.logwarn("Invalid current target index")
+            rospy.logwarn("[Worker {}] Invalid current target index({}) when setting target".format(self._id, self._curr_target)
             self._curr_target = -1
         else:
             self._curr_target = curr_target
@@ -74,7 +74,7 @@ class Worker:
         # type: (int) -> None
         # Error handling
         if self._curr_target < 0 or self._curr_target >= len(self._stations):
-            rospy.logwarn("[Worker {}]: Invalid current target index".format(self._id))
+            rospy.logwarn("[Worker {}]: Invalid current target index({}) when activating car".format(self._id, self._curr_target))
             return
         if self.is_moving:
             rospy.logwarn("[Worker " + str(self._id) + "] is already moving")
