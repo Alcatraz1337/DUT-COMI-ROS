@@ -105,6 +105,7 @@ class MultiNavServer:
                 self._cars[msg.arm_id - 1].activate_car()
                 # The station where the car finished picking should mark itself as not occupied
                 self._stations[(self._jobs[msg.job]["transfer"]["start"])].occupied_picking = False
+                rospy.loginfo("[Server] Releasing station {}...".format(self._jobs[msg.job]["transfer"]["start"]))
             # The second call should be the arm finished dropping, so the next move is set the car to ready
             elif self._cars[msg.arm_id - 1].arm_dropping:
                 rospy.loginfo("[Server] Car {} finished dropping, setting car to ready...".format(msg.arm_id))
@@ -131,9 +132,7 @@ class MultiNavServer:
         """
         start = self._jobs[job]["transfer"]["start"]
         # Check if the start station is not occupied
-        if not self._stations[start].occupied_picking:
-            self._stations[start].occupied_picking = True
-        else:
+        if self._stations[start].occupied_picking:
             rospy.logwarn_throttle(1,
                                    "[Server] Start station {} is not available (others picking), returning -1".format(
                                        start))
@@ -211,13 +210,13 @@ class MultiNavServer:
         try:
             job = self._available_jobs_name[0]
         except IndexError as e:
-            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a job")
+            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a job, this is probably because there are no available jobs")
             return
         
         try:
             car_id = self._available_cars_id[0]
         except IndexError as e:
-            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a car")
+            rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a car, this is probably because there are no available cars")
             return
             
         route = self.get_dispatch_routes(job)
@@ -245,6 +244,9 @@ class MultiNavServer:
         car.set_working_job_color(job, self._jobs[job]["target_color"])
         car.set_moving_targets(route[0], route[1])
         car.activate_car()
+        # Lock the station that the car is picking up an object
+        rospy.loginfo("[Server] Locking station {}...".format(route[0]))
+        self._stations[route[0]].occupied_picking = True  # Set the station to occupied
         # Set the station's job that it will be doing. The station should be the route's end point
         self._stations[route[1]].set_job(job)
         self._stations[route[1]].set_working_color(self._jobs[job]["target_color"])
@@ -262,9 +264,9 @@ class MultiNavServer:
         while not rospy.is_shutdown():
             self._rate.sleep()
             if not self.all_job_done():
-                if self.has_available_cars() and self.has_available_jobs() and self.has_available_stations():
+                if self.has_available_cars():
                     self.dispatch_car()
-                    self.start_stations()
+                self.start_stations()
             else:
                 rospy.loginfo("All jobs done, shutting down...")
                 self._rate.sleep()
