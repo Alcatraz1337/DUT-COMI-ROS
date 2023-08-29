@@ -59,7 +59,7 @@ class Worker:
         # type: (int, int) -> None
         # Check if the targets are valid
         if curr_target < 0 or curr_target >= len(self._stations):
-            rospy.logwarn("[Worker {}] Invalid current target index({}) when setting target".format(self._id, self._curr_target)
+            rospy.logwarn("[Worker {}] Invalid current target index({}) when setting target".format(self._id, self._curr_target))
             self._curr_target = -1
         else:
             self._curr_target = curr_target
