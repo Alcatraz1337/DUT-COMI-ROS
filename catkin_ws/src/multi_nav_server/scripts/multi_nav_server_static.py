@@ -100,9 +100,9 @@ class MultiNavServer:
             if self._cars[msg.arm_id - 1].arm_picking:
                 rospy.loginfo(
                     "[Server] Car {} finished picking, sending goal {}...".format(msg.arm_id,
-                                                                                  self._cars[msg.arm_id - 1]._curr_target))
+                                                                                  self._cars[msg.arm_id - 1]._next_target))
                 self._cars[msg.arm_id - 1].arm_picking = False
-                self._cars[msg.arm_id - 1].activate_car()
+                self._cars[msg.arm_id - 1].activate_car(goal_status=3)
                 # The station where the car finished picking should mark itself as not occupied
                 self._stations[(self._jobs[msg.job]["transfer"]["start"])].occupied_picking = False
                 rospy.loginfo("[Server] Releasing station {}...".format(self._jobs[msg.job]["transfer"]["start"]))

@@ -70,7 +70,7 @@ class Worker:
         else:
             self._next_target = next_target
 
-    def activate_car(self, goal_status=3):
+    def activate_car(self, goal_status=4):
         # type: (int) -> None
         # Error handling
         if self._curr_target < 0 or self._curr_target >= len(self._stations):
@@ -79,6 +79,11 @@ class Worker:
         if self.is_moving:
             rospy.logwarn("[Worker " + str(self._id) + "] is already moving")
             return
+        # If the goal status is 3, then the car is going to the next target
+        if goal_status == 3:
+            # Move next target to current target
+            self._curr_target = self._next_target
+            self._next_target = -1
         # Send goal
         goal = MoveBaseGoal()
         # All the situation is go to output first then input
@@ -88,11 +93,6 @@ class Worker:
         goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(goal)
         rospy.loginfo("Activate: Sending goal " + str(self._curr_target) + " to car " + str(self._id))
-        # If the goal status is 3, then the car is going to the next target
-        if goal_status == 3:
-            # Move next target to current target
-            self._curr_target = self._next_target
-            self._next_target = -1
         self.is_ready = False
         self.is_moving = True
 
