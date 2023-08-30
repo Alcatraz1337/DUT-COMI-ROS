@@ -72,12 +72,43 @@ class MultiNavServer:
             self._jobs[msg.job]["transfer"]["start"] = self._jobs[msg.job]["transfer"]["end"]
     """
 
+    def print_available_jobs(self):
+        # type: () -> None
+        # Print all jobs in availble list
+        jobs = ""
+        for job in self._available_jobs_name:
+            jobs = jobs + "{} (obj: {}), ".format(job, self._jobs[job]["target_color"])
+        rospy.loginfo("Current available jobs: [{}]".format(jobs))
+
+    def print_available_stations(self):
+        # type: () -> None
+        # Print all stations available
+        stations = ""
+        for station in self._available_stations_idx:
+            stations = stations + "st: {}, ".format(station + 1 + self._n_cars)
+        rospy.loginfo("Current available stations: [{}]".format(stations))
+        
+    def print_available_cars(self):
+        # type: () -> None
+        # Print all cars available
+        cars = ""
+        for car in self._available_cars_id:
+            cars = cars + "car{}, ".format(car)
+        rospy.loginfo("Current available cars: [{}]".format(cars))
+
+    def print_all_available(self):
+        # type: () -> None
+        # Print all available cars / stations / jobs
+        self.print_available_stations()
+        self.print_available_jobs()
+        self.print_available_cars()
+
     def arm_status_callback(self, msg):
         # type: (ArmStatus) -> None
         # If a station arm finished working
         if not isinstance(msg, ArmStatus): return
         if msg.status and msg.arm_id > self._n_cars:
-            rospy.loginfo("[Server] Station " + str(msg.arm_id) + " finished working")
+            rospy.loginfo("[Server] Station {} finished working (obj: {})".format(msg.arm_id, self._jobs[msg.job]["target_color"]))
             # If a job has no more process, then don't need to add it to available jobsl
             if self._jobs[msg.job]["process"] >= 0:
                 self._available_jobs_name.append(msg.job)
@@ -85,6 +116,8 @@ class MultiNavServer:
             self._available_stations_idx.append(msg.arm_id - self._n_cars - 1) # Note its the index
             self._working_stations_idx.remove(msg.arm_id - self._n_cars - 1)
             self._stations[msg.arm_id - self._n_cars - 1].is_working = False
+            self.print_all_available()
+
             return  # Don't need to check the rest
 
         # If a car's arm finished working (picking or dropping)
@@ -119,6 +152,7 @@ class MultiNavServer:
                 if self._stations[self._jobs[msg.job]["transfer"]["end"]] != 0:
                     self._working_stations_idx.append(self._jobs[msg.job]["transfer"]["end"])
                 self._jobs[msg.job]["transfer"]["start"] = self._jobs[msg.job]["transfer"]["end"]
+            self.print_all_available()
             return  # Don't need to check the rest
 
         rospy.logwarn_throttle(1, "[Server] Bad Arm ID: {}, skipping...".format(msg.arm_id))
@@ -207,10 +241,18 @@ class MultiNavServer:
         Also should announce the station what job it will be working on
         """
         # Get job and car index using FIFO greedy algorithm
+        if not self.has_available_jobs():
+            rospy.logwarn_throttle(1, "[Server] Currently there is no job available when trying to dispatch")
+            return 
+        
         try:
             job = self._available_jobs_name[0]
         except IndexError as e:
             rospy.logerr_throttle(1, "[Server] Index out of range when trying to get a job, this is probably because there are no available jobs")
+            return
+        
+        if not self.has_available_cars():
+            rospy.logwarn_throttle(1, "[Server] Currently there is no car available when trying to dispatch")
             return
         
         try:
