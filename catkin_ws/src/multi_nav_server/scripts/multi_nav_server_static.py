@@ -109,7 +109,7 @@ class MultiNavServer:
         if not isinstance(msg, ArmStatus): return
         if msg.status and msg.arm_id > self._n_cars:
             rospy.loginfo("[Server] Station {} finished working (obj: {})".format(msg.arm_id, self._jobs[msg.job]["target_color"]))
-            # If a job has no more process, then don't need to add it to available jobsl
+            # If a job has no more process, then don't need to add it to available jobs list
             if self._jobs[msg.job]["process"] >= 0:
                 self._available_jobs_name.append(msg.job)
             self._working_jobs_name.remove(msg.job)
@@ -223,7 +223,14 @@ class MultiNavServer:
     def all_job_done(self):
         # type: () -> bool
         for job in self._jobs.items():
+            # If a job is not finished
             if job[1]["process"] >= 0:
+                return False
+            # If there are working job
+            if len(self._working_jobs_name) > 0:
+                return False
+            # If a job is finished but not send back to distribution
+            if job[1]["transfer"]["start"] != 0:
                 return False
         return True
 
