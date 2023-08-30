@@ -151,6 +151,11 @@ class MultiNavServer:
                 # The car finished transporting the object, then add the station to working stations list
                 if self._stations[self._jobs[msg.job]["transfer"]["end"]] != 0:
                     self._working_stations_idx.append(self._jobs[msg.job]["transfer"]["end"])
+                if self._jobs[msg.job]["transfer"]["end"] == 0:
+                    try:
+                        self._working_jobs_name.remove(msg.job)
+                    except Exception as e:
+                        rospy.logerr_throttle(1, "Try to remove {} from working_jobs_name list but it doesn't exsist".format(msg.job))
                 self._jobs[msg.job]["transfer"]["start"] = self._jobs[msg.job]["transfer"]["end"]
             self.print_all_available()
             return  # Don't need to check the rest
